@@ -3,3 +3,7 @@
 - Launch **python aws.py**
 - You will be able to list, start, stop your EC2 without having to remember long aws commands or EC2 IDs
 - Enjoy!
+
+
+### Requirements ###
+- Python 3.10+

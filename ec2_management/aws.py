@@ -89,33 +89,44 @@ def list_instances():
     print("===================================================================")
     return instances
 
-def select_instance(instances, action):
+def select_instances(instances, action):
     if not instances:
         print("No instances available.")
-        return None
-    try:
-        selection = int(input(f"Enter the number of the instance to {action}: "))
-        for item in instances:
-            if item[0] == selection:
-                return item[1]
-    except ValueError:
-        pass
-    print("Invalid selection. Please enter a valid number.")
-    return None
+        return []
+    raw = input(f"Enter the number(s) of the instance(s) to {action} (space-separated): ").strip()
+    if not raw:
+        print("No selection made.")
+        return []
+
+    selected_ids, invalid = [], []
+    for token in raw.split():
+        try:
+            sel = int(token)
+            match = next((item for item in instances if item[0] == sel), None)
+            if match:
+                selected_ids.append(match[1])
+            else:
+                invalid.append(token)
+        except ValueError:
+            invalid.append(token)
+
+    if invalid:
+        print(f"Ignored invalid selections: {', '.join(invalid)}")
+    return selected_ids
 
 def start_instance():
     instances = list_instances()
-    instance_id = select_instance(instances, "start")
-    if instance_id:
-        ec2.start_instances(InstanceIds=[instance_id])
-        print(f"Instance {instance_id} is starting...")
+    instance_ids = select_instances(instances, "start")
+    if instance_ids:
+        ec2.start_instances(InstanceIds=instance_ids)
+        print(f"Starting {len(instance_ids)} instance(s): {', '.join(instance_ids)}")
 
 def stop_instance():
     instances = list_instances()
-    instance_id = select_instance(instances, "stop")
-    if instance_id:
-        ec2.stop_instances(InstanceIds=[instance_id])
-        print(f"Instance {instance_id} is stopping...")
+    instance_ids = select_instances(instances, "stop")
+    if instance_ids:
+        ec2.stop_instances(InstanceIds=instance_ids)
+        print(f"Stopping {len(instance_ids)} instance(s): {', '.join(instance_ids)}")
 
 def main():
     while True:
@@ -125,18 +136,18 @@ def main():
         print("1. List EC2 Instances")
         print("2. Start an EC2 Instance")
         print("3. Stop an EC2 Instance")
-        print("4. Exit")
+        print("0. Exit")
         print("=============================")
         choice = input("Choose an option: ")
-        if choice == "1":
+        if choice == "0":
+            print("Exiting...")
+            break
+        elif choice == "1":
             list_instances()
         elif choice == "2":
             start_instance()
         elif choice == "3":
             stop_instance()
-        elif choice == "4":
-            print("Exiting...")
-            break
         else:
             print("Invalid option. Please try again.")
 
